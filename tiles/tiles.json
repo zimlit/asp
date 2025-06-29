@@ -1,0 +1,13 @@
+{
+    "tile_size": 32,
+    "tiles": [
+        {
+            "name": "grass",
+            "texture": "tiles/TestGrass.png"
+        },
+        {
+            "name": "sand",
+            "texture": "tiles/TestSand.png"
+        }
+    ]
+}
