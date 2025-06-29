@@ -24,10 +24,11 @@ class Tile:
         self.y = y
         self.size = size
         self.texture = texture
+        # Use integer positions to avoid floating point issues
         self.sprite = pyglet.sprite.Sprite(
             img=texture,
-            x=x * size,
-            y=y * size,
+            x=int(x * size),
+            y=int(y * size),
             batch=batch
         )
         print(f"({self.sprite.x}, {self.sprite.y}) {texture.width}x{texture.height}")
@@ -48,7 +49,10 @@ class Map(pyglet.event.EventDispatcher):
         self.window.push_handlers(self)
         self.window.push_handlers(self.keys)
         pyglet.clock.schedule_interval(self.update, 1/30.0)
-        self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-self.offset.x, -self.offset.y, 0))
+        # Round offset to prevent subpixel positioning
+        rounded_x = round(self.offset.x)
+        rounded_y = round(self.offset.y)
+        self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-rounded_x, -rounded_y, 0))
         self.load_map()
         
 
@@ -70,7 +74,10 @@ class Map(pyglet.event.EventDispatcher):
         elif scroll_y < 0 and self.zoom > 0.2:
             self.zoom -= 1
 
-        self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-self.offset.x, -self.offset.y, 0))
+        # Round offset to prevent subpixel positioning
+        rounded_x = round(self.offset.x)
+        rounded_y = round(self.offset.y)
+        self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-rounded_x, -rounded_y, 0))
        
 
     def update(self, dt):
@@ -92,9 +99,15 @@ class Map(pyglet.event.EventDispatcher):
         if moved:
             offset = offset.normalize() * 10
             self.offset = self.offset + offset
-            self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-self.offset.x, -self.offset.y, 0))
+            # Round offset to prevent subpixel positioning
+            rounded_x = round(self.offset.x)
+            rounded_y = round(self.offset.y)
+            self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-rounded_x, -rounded_y, 0))
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons & pyglet.window.mouse.RIGHT:
             self.offset = self.offset + math.Vec2(dx, dy)
-            self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-self.offset.x, -self.offset.y, 0))
+            # Round offset to prevent subpixel positioning
+            rounded_x = round(self.offset.x)
+            rounded_y = round(self.offset.y)
+            self.window.view = math.Mat4.from_scale(math.Vec3(self.zoom, self.zoom, 1)) @ math.Mat4.from_translation(math.Vec3(-rounded_x, -rounded_y, 0))

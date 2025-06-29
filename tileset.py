@@ -15,6 +15,7 @@
 
 import json
 import pyglet
+from pyglet.gl import *
 
 class TileSet:
     def __init__(self):
@@ -25,12 +26,27 @@ class TileSet:
 
         self.tilesize = self.tiles['tile_size']
 
+        # Create a custom texture atlas with border padding
+        atlas = pyglet.image.atlas.TextureAtlas(512, 512)
+        
+        # Apply texture parameters to the atlas texture
+        glBindTexture(atlas.texture.target, atlas.texture.id)
+        glTexParameteri(atlas.texture.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(atlas.texture.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(atlas.texture.target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(atlas.texture.target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        
         for tile in self.tiles['tiles']:
             tile_name = tile['name']
             texture_path = tile['texture']
-            tile_image = pyglet.resource.image(texture_path)
+            # Load image without auto-atlas
+            tile_image = pyglet.resource.image(texture_path, atlas=False)
             print(f"{tile_image.width}x{tile_image.height} {tile_name} {texture_path}")
-            self.tile_images[tile_name] = tile_image
+            # Convert texture to image data for atlas
+            image_data = tile_image.get_image_data()
+            # Add to our atlas with 1-pixel border
+            tile_region = atlas.add(image_data, border=1)
+            self.tile_images[tile_name] = tile_region
 
     def __getitem__(self, tile_name):
         if tile_name in self.tile_images:
