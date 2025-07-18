@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with asp. If not, see <https://www.gnu.org/licenses/>.
 
+import json
 import pyglet
 from pyglet import math
 
@@ -30,15 +31,14 @@ class Tile:
             y=y * size,
             batch=batch
         )
-        print(f"({self.sprite.x}, {self.sprite.y}) {texture.width}x{texture.height}")
 
 class Map(pyglet.event.EventDispatcher):
     def __init__(self, window, file, zoom=1):
         self.file = file
         self.zoom = zoom
         self.tiles = []
+        self.size = (0, 0)
         self.offset = math.Vec2(0, 0)
-        self.size = (20, 20)
         self.batch = pyglet.graphics.Batch()
         self.tileset = tileset.TileSet()
         self.map_data = None
@@ -53,11 +53,20 @@ class Map(pyglet.event.EventDispatcher):
         
 
     def load_map(self):
-        for y in range(self.size[1]):
-            for x in range(self.size[0]):
-                self.tiles.append(
-                    Tile(x, y, self.tileset["sand"], batch=self.batch)
-                )
+        self.map_data = json.load(pyglet.resource.file(self.file, 'r'))
+        self.size = (self.map_data["width"], self.map_data["height"])
+        tiles = self.map_data["tiles"]
+        if len(tiles) != self.size[1]:
+            raise ValueError("Map data does not match specified size.")
+        
+        for y, row in enumerate(tiles):
+            if len(row) != self.size[0]:
+                raise ValueError("Map data does not match specified size.")
+            for x, tile_name in enumerate(row):
+                if tile_name in self.tileset.tile_images:
+                    tile_texture = self.tileset[tile_name]
+                    tile = Tile(x, y, tile_texture, size=self.tileset.tilesize, batch=self.batch)
+                    self.tiles.append(tile)
 
     def draw(self):
 

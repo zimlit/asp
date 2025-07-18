@@ -15,22 +15,31 @@
 
 import json
 import pyglet
+from pyglet.gl import *
 
 class TileSet:
     def __init__(self):
         tile_data = pyglet.resource.file('tiles/tiles.json', 'r')
         self.tiles = json.load(tile_data)
         self.tile_images = {}
-        print(json.dumps(self.tiles, indent=4))
+
+        self.atlas = pyglet.image.atlas.TextureAtlas()
+
+        glBindTexture(GL_TEXTURE_2D, self.atlas.texture.id) 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
         self.tilesize = self.tiles['tile_size']
 
         for tile in self.tiles['tiles']:
             tile_name = tile['name']
             texture_path = tile['texture']
-            tile_image = pyglet.resource.image(texture_path)
-            print(f"{tile_image.width}x{tile_image.height} {tile_name} {texture_path}")
-            self.tile_images[tile_name] = tile_image
+            tile_image = pyglet.resource.image(texture_path, atlas=False)
+            image_data = tile_image.get_image_data()
+            tile_region = self.atlas.add(image_data, border=1)
+            self.tile_images[tile_name] = tile_region
 
     def __getitem__(self, tile_name):
         if tile_name in self.tile_images:
