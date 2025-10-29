@@ -1,0 +1,8 @@
+{
+    "name": "test",
+    "class": "doppelsoldner",
+    "base-level": "1",
+    "sprites": {
+        "map-sprite": "units/map-sprites/doppelsoldner-map.gif"
+    }
+}

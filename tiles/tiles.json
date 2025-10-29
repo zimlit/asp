@@ -1,5 +1,5 @@
 {
-    "tile_size": 32,
+    "tile_size": 16,
     "tiles": [
         {
             "name": "grass",
